@@ -3,12 +3,14 @@ import {registerUser,
      deleteUser, 
      editPassword,
      editRole, 
-     editPosition, 
+     editSkill, 
      getUsers,
      getOneUser,
-     getUsersByPosition,
-     getTag
-     //generateTag
+     getUsersByRoles,
+     getTag,
+     upgradeUser,
+     findPending,
+     activateWifi
     } from '../controllers/admin.js'
 import verifyAdmin from '../middlewares/verifyAdmin.js'
 
@@ -20,7 +22,7 @@ const router = express.Router()
 
     router.get("/users/:id", verifyAdmin, getOneUser)
 
-    router.get("/users/:id", verifyAdmin, getUsersByPosition)
+    router.get("/users/:id", verifyAdmin, getUsersByRoles)
 
     router.post("/users/create", verifyAdmin, registerUser)
 
@@ -30,8 +32,16 @@ const router = express.Router()
 
     router.patch("/users/:id/editRole", verifyAdmin, editRole)
 
-    router.get("/users/:id/editPosition", verifyAdmin, editPosition)
+    router.patch("/users/:id/upgradeUser", verifyAdmin, upgradeUser)
+
+    router.get("/users/:id/editPosition", verifyAdmin, editSkill)
+
+    router.get("/users/findPending", verifyAdmin, findPending)
+
+    router.get("/users/:id/activateWifi", verifyAdmin, activateWifi)
 
     router.post("/generateTag", verifyAdmin, getTag)
+
+
 
 export default router

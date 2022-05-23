@@ -16,9 +16,14 @@ app.use(urlencoded({extended: true}))
 app.use(methodOverride('_method'))
 
 //Routes
-app.use("/", loginRoutes)
+app.use("/auth", loginRoutes)
 app.use("/admin", adminRoutes)
 app.use("/api", userRoutes)
+app.use('*',(req,res)=>{
+  res.status(500).send({
+      status:false, message:'Sorry Route does not exists',
+  })
+})
 
 // Database configuration
 mongoose

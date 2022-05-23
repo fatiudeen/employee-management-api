@@ -5,8 +5,9 @@ import { getUser,
         newProfileImg, 
         deleteProfileImg,
         editDOB,
-        editRole,
-        getAvi 
+        editSkill,
+        getAvi,
+        editAddress 
             } from '../controllers/user.js'
 
 import verify from '../middlewares/verify.js'
@@ -25,7 +26,9 @@ router.get("/user/avi", getAvi)
 
 router.patch("/user/name", verify, editName)
 
-router.patch("/user/role", verify, editRole)
+router.patch("/user/address", verify, editAddress)
+
+router.patch("/user/role", verify, editSkill)
 
 router.patch("/user/DOB", verify, editDOB)
 

@@ -5,7 +5,7 @@ const router = express.Router()
 
 router.post("/login", login)
 
-router.post('/subscriber/reg', register)
+router.post('/reg', register)
 
 
 export default router

@@ -7,17 +7,17 @@ import jwt from 'jsonwebtoken'
 const userSchema = new mongoose.Schema({
     firstName: {
         type: String,
-        required: [true,'']
+        required: [true,'Enter your First Name']
     },
 
     lastName: {
         type: String,
-        required: [true,'']
+        required: [true,'Enter your First Name']
     },
     
     password: {
         type: String,
-        required: [true,''],
+        required: [true,'Enter a password'],
         minlength: 6,
         select: false
     },
@@ -27,10 +27,10 @@ const userSchema = new mongoose.Schema({
         required: false,
     },
 
-    position : {
+    role : {
         type: String,
-        required: [true, ''],
-        enum: ['Staff', 'Intern', 'Subscriber',]
+        required: [true, 'Choose a user role (Staff, User or a Subscriber)'],
+        enum: ['Staff', 'Intern', 'Subscriber', ]
     },
     isAdmin: {
         type: Boolean,
@@ -38,7 +38,7 @@ const userSchema = new mongoose.Schema({
     
     },
 
-    role:{
+    skill:{
         type: String,
         required: false,
         default: ''
@@ -50,26 +50,71 @@ const userSchema = new mongoose.Schema({
         expireAfterSeconds: null
     },
 
-    phoneNumber:[{type: Number,
-        required:[true, ''],
+    phoneNumber:[{type: String,
+        required:[true, 'Enter a valid Phone Number'],
         minlength: 10,
         maxlength: 11 ////////////////////////////////////////
     }],
 
-    subscribtionInMonths:{type: Number
+    duration:{type: Number
     },
 
-    email:{type: String,
-        required:[true, ''],
+    email:{
+        type: String,
+        required:[true, 'please provide a valid email'],
         match:[/^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
         'please provide a valid email'
-    ]
+        ],
+        collation: {
+        locale : 'en',
+        strength : 2
+      },
+        unique: [true, 'User exists']
     },
 
     avi:{
         type: String,
         required: false,
         default: ''
+    },
+
+    address:{
+        type: String,
+        required: false,
+        default: ''
+    },
+
+    active:{
+        type: Boolean,
+        default: true
+    },
+
+    wifiLogin:{
+        username: {
+            type: String,
+            default:''            
+        },
+        pass:{
+            type: String,
+            default:''
+        },
+        status:{
+            type: String,
+            enum: ['Not Active', 'Pending', 'Active', ]
+        }
+     },
+
+
+    plan:{
+        type: String,
+        required: function(){
+            if(this.position == 'Subscriber'){
+                return true
+            }else{
+                return false
+            }
+        },
+        enum:['Byte Plan','Kilobyte Plan','Megabyte Plan','Gigabyte Plan','Terabyte Plan', 'Virtual Office']//////////////////////////////////////////
     }
 
 });
@@ -87,7 +132,7 @@ userSchema.pre("save", async function(next){
         this.Created_at.expireAfterSeconds = 60*60*24*30*this.subscribtion
     }/*else{
         this.Created_at.expireAfterSeconds = Number.POSITIVE_INFINITY
-        this.subscribtionInMonths = 0
+        this.duration = 0
     }*/
     next()
         

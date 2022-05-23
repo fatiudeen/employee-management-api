@@ -1,9 +1,8 @@
 import {User as user} from "../models/User.js"
 import Tag from '../models/Tags.js'
-import jwt from 'jsonwebtoken'
 
 
-//manage user data////////////////////////////////////////////////////////////////////
+//manage user data////////////////////////////////
 
 
     //get all users
@@ -54,9 +53,9 @@ export const getOneUser = async (req, res, next)=>{
 }
 
     //get one user by position
-    export const getUsersByPosition = async (req, res, next)=>{
+    export const getUsersByRoles = async (req, res, next)=>{
         try{
-            await user.find(req.body.position, (err, doc)=>{
+            await user.find(req.body.role, (err, doc)=>{
             if (err) {
                 res.status(400).json({
                     success: false,
@@ -83,8 +82,8 @@ export const registerUser = async (req, res, next) =>{
     lastName,
     password ,
     role ,
-    position, 
-    subscribtionInMonths, 
+    skill, 
+    duration, 
     dateOfBirth ,
     phoneNumber ,
     email} = req.body
@@ -102,8 +101,8 @@ export const registerUser = async (req, res, next) =>{
             lastName,
             password ,
             role ,
-            position, 
-            subscribtionInMonths, 
+            skill, 
+            duration, 
             dateOfBirth ,
             phoneNumber ,
             email})
@@ -122,7 +121,7 @@ export const registerUser = async (req, res, next) =>{
 } 
     //DELETE USER
 export const deleteUser = async (req, res, next)=>{
-    user.findByIdAndDelete(req.params.id, (err, doc)=>{
+    await user.findByIdAndDelete(req.params.id, (err, doc)=>{
         if (err){
             res.status(400).json({
                 success: false,
@@ -137,7 +136,7 @@ export const deleteUser = async (req, res, next)=>{
 
 } 
     //EDIT PASSWORD
-export const editPassword = (req, res, next)=>{
+export const editPassword = async (req, res, next)=>{
     let pass = req.body.password
     if(pass.length < 6){
         return res.status(400).json({
@@ -145,7 +144,7 @@ export const editPassword = (req, res, next)=>{
                 error: "password length must be more than 6"
         })
     }
-    user.findById(req.params.id).select('+password').exec( (err, doc)=>{
+    await user.findById(req.params.id).select('+password').exec( (err, doc)=>{
         if (err){
             res.status(400).json({
                 success: false,
@@ -174,9 +173,9 @@ export const editPassword = (req, res, next)=>{
     })
 }
 
-    //EDIT position
-export const editPosition = (req, res, next)=>{
-        user.findOneAndUpdate({_id: req.params.id}, {position: req.body.position} ,{new: true}, (err, doc)=>{
+    //EDIT role
+export const editRole = (req, res, next)=>{
+        user.findOneAndUpdate({_id: req.params.id}, {role: req.body.role} ,{new: true}, (err, doc)=>{
             if (err){
                 res.status(400).json({
                     success: false,
@@ -192,8 +191,8 @@ export const editPosition = (req, res, next)=>{
         })
     }
   //EDIT ROLE
-  export const editRole = (req, res, next)=>{
-    user.findOneAndUpdate({_id: req.params.id}, {role: req.body.role} ,{new: true}, (err, doc)=>{
+  export const editSkill = (req, res, next)=>{
+    user.findOneAndUpdate({_id: req.params.id}, {skill: req.body.skill} ,{new: true}, (err, doc)=>{
         if (err){
             res.status(400).json({
                 success: false,
@@ -212,11 +211,14 @@ export const editPosition = (req, res, next)=>{
 
 //generate Tag
 export const getTag = (req, res) => {
-    let _token = jwt.sign({id: req.user._id, subscribtionInMonths: req.body.subscribtionInMonths}, 'terces', {expiresIn: process.env.JWT_TIMEOUT} )
-    Tag.create({_token}).then(doc=>{
+
+    let rand = Math.floor(Math.random() * 90000) + 10000
+    // let _token = jwt.sign({id: req.user._id, duration: req.body.duration}, process.env.JWT_SECRET, {} )
+    
+    Tag.create({duration: req.body.duration, tag: rand, plan: req.body.plan, token: req.user._id}).then(doc=>{
         res.status(200).json({
             success: true,
-            doc})
+            doc: doc.tag})
     }).catch(err=>{
         res.status(400).json({
             success: false,
@@ -224,4 +226,58 @@ export const getTag = (req, res) => {
         })
         return
     })
+}
+/////////////// make an existing user admin
+export const upgradeUser = (req,res,next) =>{
+
+    user.findOneAndUpdate({_id: req.params.id}, {isAmin: true} ,{new: true}, (err, doc)=>{
+        if (err){
+            res.status(400).json({
+                success: false,
+                error: error.message
+            })
+        }
+        else{
+            res.status(200).json({
+                success: true,
+                doc
+            } )
+        }
+    })    
+}
+
+export const findPending = (req,res,next) =>{
+
+    user.find().and({role: 'Subscriber'}, {'wifiLogin.status': 'Pending'} ,(err, doc)=>{
+        if (err){
+            res.status(500).json({
+                success: false,
+                error: error.message
+            })
+        }
+        else{
+            res.status(200).json({
+                success: true,
+                doc
+            } )
+        }
+    })    
+}
+
+export const activateWifi = (req,res,next) =>{
+
+    user.findOneAndUpdate({_id: req.params.id}, {'wifiLogin.status': 'Active'} ,{new: true}, (err, doc)=>{
+        if (err){
+            res.status(500).json({
+                success: false,
+                error: error.message
+            })
+        }
+        else{
+            res.status(200).json({
+                success: true,
+                doc
+            } )
+        }
+    })    
 }

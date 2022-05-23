@@ -48,9 +48,9 @@ import{cloudDownload, cloudUpload, cloudDelete} from '../middlewares/upload.js'
             }
         })
     }
-    //ADD role
-    export const editRole = (req, res, next)=>{
-        user.findOneAndUpdate({_id: req.user._id}, {rank: req.body.position} ,(err, doc)=>{
+    //ADD skill
+    export const editSkill = (req, res, next)=>{
+        user.findOneAndUpdate({_id: req.user._id}, {skill: req.body.skill} ,(err, doc)=>{
             if (err){
                 res.status(400).json({
                     success: false,
@@ -66,6 +66,24 @@ import{cloudDownload, cloudUpload, cloudDelete} from '../middlewares/upload.js'
             }
         })
     }
+        //ADD address
+        export const editAddress = (req, res, next)=>{
+            user.findOneAndUpdate({_id: req.user._id}, {address: req.body.address} ,(err, doc)=>{
+                if (err){
+                    res.status(400).json({
+                        success: false,
+                        error: error.message
+                    })
+                    return
+                }
+                else{
+                    res.status(200).json({
+                        success: true,
+                        
+                    } )
+                }
+            })
+        }
 
     //ADD DOB
     export const editDOB = (req, res, next)=>{

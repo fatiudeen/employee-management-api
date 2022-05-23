@@ -1,9 +1,10 @@
 import {User as user} from "../models/User.js"
 import bcrypt from "bcryptjs"
-import jwt from 'jsonwebtoken'
+import Tag from '../models/Tags.js'
 
 export const login = async (req, res, next) =>{
   const {login, password} = req.body
+
 
   if (!login || !password){
     res.json({
@@ -13,23 +14,11 @@ export const login = async (req, res, next) =>{
     }) 
     return
 }
-  let _user 
-  await user.findOne()
+      let _user = await user.findOne()
         .or([{email: login}, {phoneNumber: login}])
         .select("+password")
-        .then(user=>{
-            user = _user
-        })
-        .catch(err=>{
-            res.status(400).json({
-                success: false,
-                message: "User does not exist"
-            })
-            return
-        })
 
-
-
+    
    try {
         if (!_user){
             res.status(400).json({
@@ -72,12 +61,12 @@ export const register = async (req, res , next)=>{
     let {firstName,
         lastName,
         password ,
-        position, 
-        tag, 
+        tag,
         dateOfBirth ,
         phoneNumber ,
         email} = req.body
 
+    let token
 
 
         if (!tag){
@@ -88,9 +77,21 @@ export const register = async (req, res , next)=>{
             }) 
             return
           }
-        let token = jwt.verify(tag, 'terces')
-        user.findById(token.id).then(doc=>{
+
+        await Tag.findOne({tag: tag}).then(doc=>{
             if(!doc){
+                res.json({
+                    sucess: false,
+                    message: "provide a valid verification Tag"
+          
+                }) 
+                return
+            }
+            token = doc
+        
+        //verifies the subscribers tag
+        user.findById(doc.token).then(_docu=>{
+            if(!_docu){
                 res.json({
                     sucess: false,
                     message: "Invalid Tag"
@@ -103,9 +104,25 @@ export const register = async (req, res , next)=>{
             })
             return
         })
+        }).catch(error=>{
+            res.status(400).json({
+                success: false,
+                message: error.messager
+            })
+            return
+        })
+        
 
-        try {
+       // try {
+            //checks if a user exists
             const _user = await user.findOne({firstName, lastName, email}).select("+password")
+            .catch(error=>{
+                res.status(400).json({
+                    success: false,
+                    error: error.message
+                })
+                return
+            })
             if (_user){
                 res.status(400).json({
                     success: false,
@@ -113,24 +130,47 @@ export const register = async (req, res , next)=>{
                 })
                 return
             }
-            let subscribtionInMonths = token.subscribtionInMonths
+
+            //creates new subscriber
+            let duration = token.duration
+            let plan = token.plan 
             await user.create({firstName,
                 lastName,
                 password ,
-                role: 'Subscriber' ,
-                position, 
-                subscribtionInMonths, 
+                role: 'Subscriber', 
+                duration, 
                 dateOfBirth ,
                 phoneNumber ,
-                email})
-                res.status(201).json({
-                    success: true,
-                    
+                plan,
+                email}).then(doc=>{
+
+                    //removes tag after user registration
+                    Tag.findOneAndDelete({tag: tag}).catch(err=>{
+                        res.status(400).json({
+                            success: false,
+                            error: err.message
+                    })
+                    return})
+                    res.status(201).json({
+                        success: true,
+                        doc: doc
+                        
+                    })
+                }).catch(error=>{
+                    res.status(400).json({
+                        success: false,
+                        error: error.message
+                    })
+                    return
                 })
-            } catch (error) {
+
+
+                
+            /*} catch (error) {
                 res.status(400).json({
                     success: false,
                     error: error.message
                 })
-            }
+                return
+            }*/
 }
